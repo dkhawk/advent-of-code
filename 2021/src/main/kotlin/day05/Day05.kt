@@ -54,35 +54,33 @@ class Day05 {
     solve(includeDiagonals = false)
   }
 
-  private fun solve(includeDiagonals: Boolean) {
-    val inputs = getInput(useRealInput = true)
-
-    val locations = HashMap<Vector, Int>()
-    inputs.filter { line ->
-      includeDiagonals || (line.second.x == line.first.x) || (line.second.y == line.first.y)
-    }.forEach { line ->
-      var start = line.first
-      val end = line.second
-
-      val dirVector = start.directionTo(end).sign
-
-      locations[start] = locations.getOrDefault(start, 0) + 1
-      while (start != end) {
-        start += dirVector
-        locations[start] = locations.getOrDefault(start, 0) + 1
-      }
-    }
-
-    val answer = locations.count { (_, v) ->
-      v > 1
-    }
-
-    println(answer)
-  }
-
   private fun part2() {
     solve(includeDiagonals = true)
   }
+
+  private fun solve(includeDiagonals: Boolean) {
+    val inputs = getInput(useRealInput = true)
+
+    val numPoints = inputs.filter { line ->
+      includeDiagonals || line.isHorizontalOrVertical()
+    }.flatMap { line ->
+      val start = line.first
+      val end = line.second
+
+      val directionVector = start.directionTo(end).sign
+
+      generateSequence(start) { if (it != end) it + directionVector else null }
+    }
+      .groupingBy { it }
+      .eachCount()
+      .filter { it.value > 1 }
+      .size
+
+    println(numPoints)
+  }
 }
+
+private fun Pair<Vector, Vector>.isHorizontalOrVertical(): Boolean =
+  (second.x == first.x) || (second.y == first.y)
 
 private fun  List<Int>.toPoint(): Vector = Vector(first(), last())
