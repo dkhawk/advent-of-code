@@ -33,45 +33,28 @@ class Day06 {
   private fun part1() {
     val inputs = getInput(useRealInput = true)
 
-    var fish = inputs
-
-    repeat(80) {
-      fish = fish.flatMap { it ->
-        val n = it - 1
-
-        if (n == -1) {
-          listOf(6,8)
-        } else {
-          listOf(n)
-        }
-      }
-    }
-
-    println(fish.count())
+    val last = runSimulation(inputs, 80)
+    println(last.sum())
   }
 
   private fun part2() {
     val inputs = getInput(useRealInput = true)
 
-    val fishByAge = inputs.groupingBy { it }.eachCount()
-      // This whole song and dance is to force the values to be longs
-      .toList().associate { it.first to it.second.toLong() }
-      .toMutableMap()
+    val last = runSimulation(inputs, 256)
+    println(last.sum())
+  }
 
-    repeat(256) {
-      val tmp = fishByAge.getOrDefault(0, 0)
-
-      fishByAge[0] = fishByAge.getOrDefault(1, 0)
-      fishByAge[1] = fishByAge.getOrDefault(2, 0)
-      fishByAge[2] = fishByAge.getOrDefault(3, 0)
-      fishByAge[3] = fishByAge.getOrDefault(4, 0)
-      fishByAge[4] = fishByAge.getOrDefault(5, 0)
-      fishByAge[5] = fishByAge.getOrDefault(6, 0)
-      fishByAge[6] = fishByAge.getOrDefault(7, 0) + tmp
-      fishByAge[7] = fishByAge.getOrDefault(8, 0)
-      fishByAge[8] = tmp
+  private fun runSimulation(inputs: List<Int>, generations: Int): List<Long> {
+    val fishMap = inputs.groupBy { it }
+    val fish = (0..8).map {
+      fishMap.getOrDefault(it, emptyList()).size.toLong()
     }
 
-    println(fishByAge.values.sum())
+    val s = generateSequence(fish) { previous ->
+      (0..5).map { previous[it + 1] } + (previous[0] + previous[7]) + previous[8] + previous[0]
+    }
+
+    // Have to drop the seed to get the count correct
+    return s.drop(1).take(generations).last()
   }
 }
