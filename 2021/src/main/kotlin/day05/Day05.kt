@@ -83,4 +83,4 @@ class Day05 {
 private fun Pair<Vector, Vector>.isHorizontalOrVertical(): Boolean =
   (second.x == first.x) || (second.y == first.y)
 
-private fun  List<Int>.toPoint(): Vector = Vector(first(), last())
+private fun List<Int>.toPoint(): Vector = Vector(first(), last())
