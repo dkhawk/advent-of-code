@@ -42,11 +42,11 @@ class Day07 {
     val max = crabs.maxOf { it }
     val min = crabs.minOf { it }
 
-    val costValues = LongArray(max - min + 1)
-    costValues[0] = 0
-    costValues.indices.drop(1).forEach {
-      costValues[it] = costValues[it - 1] + it
-    }
+    // Needs to be initialized to one since the first value of the sequence is the seed
+    var index = 1L
+    val costValues = generateSequence(0L) {
+      it + (index++)
+    }.take(max + 1).toList()
 
     val best = minCost(min, max, crabs) { start, end ->
       costValues[abs(end - start)]
