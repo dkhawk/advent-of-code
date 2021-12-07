@@ -7,14 +7,24 @@ import utils.Input
 class Day06 {
   companion object {
     fun run() {
-      val time1 = measureTimeMillis {
+      repeat(1000) {
         Day06().part1()
       }
-      println("millis: $time1")
-      val time2 = measureTimeMillis {
+      repeat(1000) {
         Day06().part2()
       }
-      println("millis: $time2")
+      val time1 = measureTimeMillis {
+        repeat(1000) {
+          Day06().part1()
+        }
+      }
+      println("millis: ${time1.toDouble() / 1000}")
+      val time2 = measureTimeMillis {
+        repeat(1000) {
+          Day06().part2()
+        }
+      }
+      println("millis: ${time2.toDouble() / 1000}")
     }
   }
 
@@ -30,18 +40,20 @@ class Day06 {
     return input
   }
 
-  private fun part1() {
+  private fun part1(): Long {
     val inputs = getInput(useRealInput = true)
 
     val last = runSimulation(inputs, 80)
-    println(last.sum())
+//    println(last.sum())
+    return last.sum()
   }
 
-  private fun part2() {
+  private fun part2(): Long {
     val inputs = getInput(useRealInput = true)
 
     val last = runSimulation(inputs, 256)
-    println(last.sum())
+//    println(last.sum())
+    return last.sum()
   }
 
   private fun runSimulation(inputs: List<Int>, generations: Int): List<Long> {
