@@ -45,36 +45,44 @@ class Day08 {
   private fun part1() {
     val inputs = getInput(useRealInput = true)
 
-    val digits = listOf(
-      "abcefg",
-      "cf",
-      "acdeg",
-      "acdfg",
-      "bcdf",
-      "abdfg",
-      "abdefg",
-      "acf",
-      "abcdefg",
-      "abcdfg",
-    ).map { it.toCharArray().toSet() }.withIndex().associate { it.value to it.index }
+    val g = decodeValues(inputs, getDigitsMap())
+      .flatten()
+      .filter { it in listOf(1, 4, 7, 8) }
+      .groupingBy { it }
+      .eachCount()
+    println(g.values.sum())
+  }
 
+  private fun part2() {
+    val inputs = getInput(useRealInput = true)
+
+    val g = decodeValues(inputs, getDigitsMap())
+      .sumOf {
+        it.reduce { acc, i -> (acc * 10) + i }
+      }
+
+    println(g)
+  }
+
+  private fun decodeValues(
+    inputs: List<String>,
+    digits: Map<Set<Char>, Int>,
+  ): List<List<Int>> {
     val w = inputs.map { line ->
       val s = line.split('|')
       val patterns = s.first().trim().split(Regex("""\s+"""))
       val values = s.last().trim().split(Regex("""\s+"""))
 
       val decoder = decode(patterns)
-      val answer = values.map { v ->
+
+      values.mapNotNull { v ->
         val d = v.map {
           decoder[it]!!
         }.toSet()
         digits[d]
       }
-      answer
     }
-
-    val g = w.flatten().groupingBy { it }.eachCount()
-    println(g[1]!! + g[4]!! + g[7]!! + g[8]!!)
+    return w
   }
 
   private fun decode(patterns: List<String>): HashMap<Char, Char> {
@@ -87,25 +95,18 @@ class Day08 {
     decoder[grp.filterValues { it == 4 }.keys.first()] = 'e'
     decoder[grp.filterValues { it == 9 }.keys.first()] = 'f'
 
-    val reverse = decoder.entries.map { it.value to it.key }.toMap().toMutableMap()
+    val one = patterns.first { it.length == 2 }.toSet().toMutableSet()
 
-    val one = patterns.first {
-      it.length == 2
-    }.toSet().toMutableSet()
-
-    one.remove(reverse['f'])
+    one.remove(decoder.getKey('f'))
     decoder[one.first()] = 'c'
-    reverse['c'] = one.first()
 
     val aa = grp.filterValues { it == 8 }.filterKeys { it != one.first() }
     decoder[aa.keys.first()] = 'a'
 
-    reverse['a'] = aa.keys.first()
-
     val four = patterns.first { it.length == 4 }.toSet().toMutableSet()
-    four.remove(reverse['b'])
-    four.remove(reverse['c'])
-    four.remove(reverse['f'])
+    four.remove(decoder.getKey('b'))
+    four.remove(decoder.getKey('c'))
+    four.remove(decoder.getKey('f'))
     decoder[four.first()] = 'd'
 
     val all = "abcdefg".toCharArray().toSet()
@@ -116,9 +117,7 @@ class Day08 {
     return decoder
   }
 
-  private fun part2() {
-    val inputs = getInput(useRealInput = true)
-
+  private fun getDigitsMap(): Map<Set<Char>, Int> {
     val digits = listOf(
       "abcefg",
       "cf",
@@ -131,23 +130,9 @@ class Day08 {
       "abcdefg",
       "abcdfg",
     ).map { it.toCharArray().toSet() }.withIndex().associate { it.value to it.index }
-
-    val w = inputs.map { line ->
-      val s = line.split('|')
-      val patterns = s.first().trim().split(Regex("""\s+"""))
-      val values = s.last().trim().split(Regex("""\s+"""))
-
-      val decoder = decode(patterns)
-      val answer = values.mapNotNull { v ->
-        val d = v.map {
-          decoder[it]!!
-        }.toSet()
-        digits[d]
-      }
-      answer
-    }
-
-    val g = w.map { it.joinToString("").toInt() }.sum()
-    println(g)
+    return digits
   }
 }
+
+fun <K, V> Map<K, V>.getKey(value: V) =
+  entries.firstOrNull { it.value == value }?.key
