@@ -35,7 +35,7 @@ class Day08 {
 
   private fun getInput(useRealInput: Boolean): List<String> {
     val input = if (useRealInput) {
-      Input.readAsLines("08")  // <====== TODO Set the day number!!!!
+      Input.readAsLines("08")
     } else {
       sample2
     }
