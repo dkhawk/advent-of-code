@@ -15,6 +15,11 @@ class Day08 {
         Day08().part2()
       }
       println("millis: $time2")
+      val time3 = measureTimeMillis {
+        Day08().part2a()
+      }
+      println("millis: $time3")
+
     }
   }
 
@@ -63,6 +68,64 @@ class Day08 {
 
     println(g)
   }
+
+  private fun part2a() {
+    val inputs = getInput(useRealInput = true)
+
+    val listsOfDigits = inputs.map { line ->
+      val s = line.split('|')
+      val patterns = s.first().trim().split(Regex("""\s+"""))
+
+      val decoder =
+        decodeByPatterns(patterns).map { it.value.sorted().joinToString("") to it.key }.toMap()
+
+      val values =
+        s.last().trim().split(Regex("""\s+""")).map { it.toCharArray().sorted().joinToString("") }
+      values.mapNotNull { decoder[it] }
+    }
+
+    val part1 = listsOfDigits.flatten().count { it in listOf(1, 4, 7, 8) }
+
+    println(part1)
+
+    val part2 = listsOfDigits.map { it.reduce { acc, i -> acc * 10 + i } }.sum()
+
+    println(part2)
+  }
+
+  private fun decodeByPatterns(patterns: List<String>): HashMap<Int, Set<Char>> {
+    val patternSets = patterns.toMutableSet()
+
+    val output = HashMap<Int, Set<Char>>()
+
+    output[1] = patternSets.extractIf { it.length == 2 }.toList().first().toCharSet()
+    output[4] = patternSets.extractIf { it.length == 4 }.toList().first().toCharSet()
+    output[7] = patternSets.extractIf { it.length == 3 }.toList().first().toCharSet()
+    output[8] = patternSets.extractIf { it.length == 7 }.toList().first().toCharSet()
+
+    val groupedSets = patternSets.groupBy { it.length }
+
+    val setOf069 = groupedSets[6]!!.toMutableSet().map { it.toCharSet() }
+
+    val t = setOf069.partition { output[1]!!.subtract(it).isEmpty() }
+    output[6] = t.second.first()
+
+    val r = t.first.partition { output[4]!!.subtract(it).isEmpty() }
+    output[0] = r.second.first()
+    output[9] = r.first.first()
+
+    val setOf235 = groupedSets[5]!!.toMutableSet().map { it.toCharSet() }
+    val p = setOf235.partition { output[1]!!.subtract(it).isEmpty() }
+    output[3] = p.first.first()
+
+    val setOf25 = p.second
+    val s = setOf25.partition { it.subtract(output[6]!!).isEmpty() }
+    output[5] = s.first.first()
+    output[2] = s.second.first()
+
+    return output
+  }
+
 
   private fun decodeValues(
     inputs: List<String>,
@@ -117,22 +180,28 @@ class Day08 {
     return decoder
   }
 
+  private val digits = listOf(
+    "abcefg",
+    "cf",
+    "acdeg",
+    "acdfg",
+    "bcdf",
+    "abdfg",
+    "abdefg",
+    "acf",
+    "abcdefg",
+    "abcdfg",
+  )
+
   private fun getDigitsMap(): Map<Set<Char>, Int> {
-    val digits = listOf(
-      "abcefg",
-      "cf",
-      "acdeg",
-      "acdfg",
-      "bcdf",
-      "abdfg",
-      "abdefg",
-      "acf",
-      "abcdefg",
-      "abcdfg",
-    ).map { it.toCharArray().toSet() }.withIndex().associate { it.value to it.index }
-    return digits
+    return digits.map { it.toCharArray().toSet() }.withIndex().associate { it.value to it.index }
   }
 }
+
+private fun String.toCharSet(): Set<Char> = this.toCharArray().toSet()
+
+private fun <E> MutableSet<E>.extractIf(function: (E) -> Boolean ) : MutableSet<E> =
+  filter(function).also { removeAll(it) }.toMutableSet()
 
 fun <K, V> Map<K, V>.getKey(value: V) =
   entries.firstOrNull { it.value == value }?.key
