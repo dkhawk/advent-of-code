@@ -8,7 +8,7 @@ class Day07 {
   companion object {
     fun run() {
       Day07().part1()
-      Day07().part2()
+//      Day07().part2()
     }
   }
 
@@ -25,6 +25,8 @@ class Day07 {
 
   private fun part1() {
     val crabs = getInput(useRealInput = true)
+
+//    println(crabs.filter { it in 30..127 }.map { it.toChar() }.joinToString(""))
 
     val max = crabs.maxOf { it }
     val min = crabs.minOf { it }
