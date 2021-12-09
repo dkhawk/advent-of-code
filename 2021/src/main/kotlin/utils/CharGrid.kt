@@ -176,8 +176,13 @@ class CharGrid() : Grid<Char> {
   }
 
   fun getNeighbors(Vector: Vector): List<Char> {
-    return Heading.values().map { heading->
-      getCell(Vector + heading.vector)
+    return Heading.values().mapNotNull { heading ->
+      val v = Vector + heading.vector
+      if (validLocation(v)) {
+        getCell(v)
+      } else {
+        null
+      }
     }
   }
 
