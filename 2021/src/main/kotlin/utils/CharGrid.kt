@@ -140,22 +140,22 @@ class CharGrid() : Grid<Char> {
   }
 
   fun setCell(Vector: Vector, c: Char) {
-    grid[VectorToIndex(Vector)] = c
+    grid[vectorToIndex(Vector)] = c
   }
 
-  fun VectorToIndex(Vector: Vector): Int {
+  fun vectorToIndex(Vector: Vector): Int {
     return Vector.x + Vector.y * width
   }
 
   fun getCell(Vector: Vector): Char {
-    return grid[VectorToIndex(Vector)]
+    return grid[vectorToIndex(Vector)]
   }
 
   fun getCellOrNull(Vector: Vector): Char? {
     if (!validLocation(Vector)) {
       return null
     }
-    return grid[VectorToIndex(Vector)]
+    return grid[vectorToIndex(Vector)]
   }
 
   fun getNeighbors(index: Int): List<Char> {
@@ -167,17 +167,13 @@ class CharGrid() : Grid<Char> {
     return grid[coordsToIndex(x, y)]
   }
 
-  fun getCell_row_col(x: Int, y: Int): Char {
-    return grid[coordsToIndex(x, y)]
-  }
-
   override fun coordsToIndex(x: Int, y: Int): Int {
     return x + y * width
   }
 
-  fun getNeighbors(Vector: Vector): List<Char> {
+  fun getNeighbors(vector: Vector): List<Char> {
     return Heading.values().mapNotNull { heading ->
-      val v = Vector + heading.vector
+      val v = vector + heading.vector
       if (validLocation(v)) {
         getCell(v)
       } else {
@@ -185,6 +181,20 @@ class CharGrid() : Grid<Char> {
       }
     }
   }
+
+  fun getNeighborsWithLocation(vector: Vector): List<Pair<Vector, Char>> {
+    return Heading.values().mapNotNull { heading ->
+      val v = vector + heading.vector
+      if (validLocation(v)) {
+        v to getCell(v)
+      } else {
+        null
+      }
+    }
+  }
+
+  fun getNeighborsWithLocation(index: Int): List<Pair<Vector, Char>> =
+    getNeighborsWithLocation(indexToVector(index))
 
   fun getNeighborsIf(Vector: Vector, predicate: (Char, Vector) -> Boolean): List<Vector> {
     return Heading.values().mapNotNull { heading->
