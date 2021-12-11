@@ -123,6 +123,28 @@ class CharGrid() : Grid<Char> {
     return output.toString()
   }
 
+  fun toStringWithHighlights(highlight: String = COLORS.LT_RED.toString(), predicate: (Char, Vector) -> Boolean): String {
+    val output = StringBuilder()
+    output.append("$width, $height\n")
+    var row = 0
+    grid.toList().windowed(width, width) {
+      output.append(
+        it.withIndex().joinToString("") { (index, c) ->
+          val shouldHighlight = predicate(c, Vector(index, row))
+          if (shouldHighlight) {
+            highlight + c.toString() + NO_COLOR
+          } else {
+            c.toString()
+          }
+        }
+      ).append('\n')
+      row += 1
+    }
+
+    return output.toString()
+  }
+
+
   operator fun get(Vector: Vector): Char = getCell(Vector)
 
   fun findCharacter(target: Char): Vector? {
@@ -192,6 +214,19 @@ class CharGrid() : Grid<Char> {
       }
     }
   }
+
+  fun getNeighbor8sWithLocation(index: Int): List<Pair<Vector, Char>> {
+    val vector = indexToVector(index)
+    return Heading8.values().mapNotNull { heading ->
+      val v = vector + heading.vector
+      if (validLocation(v)) {
+        v to getCell(v)
+      } else {
+        null
+      }
+    }
+  }
+
 
   fun getNeighborsWithLocation(index: Int): List<Pair<Vector, Char>> =
     getNeighborsWithLocation(indexToVector(index))
@@ -419,5 +454,11 @@ class CharGrid() : Grid<Char> {
         setCell_xy(x, y, other.getCell_xy(col, row))
       }
     }
+  }
+
+  fun findAll(predicate: (Int, Char) -> Boolean): List<Pair<Int, Char>> {
+    return grid.withIndex().filter { (index, value) ->
+      predicate(index, value)
+    }.map { (index, value) -> index to value }
   }
 }
