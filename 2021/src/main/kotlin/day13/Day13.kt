@@ -60,7 +60,7 @@ class Day13 {
     val folds = inputs.second
 
     var grid = createGrid(inputs.first)
-    
+
     folds.take(1).forEach { fold ->
       if (fold.first == "y") {
         grid = grid.foldY(fold.second)
