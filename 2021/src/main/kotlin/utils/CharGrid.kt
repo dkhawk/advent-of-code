@@ -461,4 +461,46 @@ class CharGrid() : Grid<Char> {
       predicate(index, value)
     }.map { (index, value) -> index to value }
   }
+
+  fun pivot(): CharGrid {
+    val outGrid = CharGrid(CharArray(width * height), height, width)
+
+    repeat(height) { row ->
+      repeat(width) { col ->
+        outGrid.setCell_xy(row, col, getCell_xy(col, row))
+      }
+    }
+
+    return outGrid
+  }
+
+  fun rotateClockwise(): CharGrid {
+    val outGrid = CharGrid(CharArray(width * height), height, width)
+
+    repeat(height) { row ->
+      repeat(width) { col ->
+        val outY = col
+        val outX = (height - 1) - row
+        val src = getCell_xy(col, row)
+        outGrid.setCell_xy(outX, outY, src)
+      }
+    }
+
+    return outGrid
+  }
+
+  fun rotateCounterClockwise(): CharGrid {
+    val outGrid = CharGrid(CharArray(width * height), height, width)
+
+    repeat(height) { row ->
+      repeat(width) { col ->
+        val outX = row
+        val outY = (width - 1) - col
+        val src = getCell_xy(col, row)
+        outGrid.setCell_xy(outX, outY, src)
+      }
+    }
+
+    return outGrid
+  }
 }

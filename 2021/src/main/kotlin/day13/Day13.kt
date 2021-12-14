@@ -1,5 +1,6 @@
 package day13
 
+import kotlin.math.abs
 import utils.CharGrid
 import utils.Input
 import utils.Vector
@@ -8,12 +9,16 @@ import utils.Vector
 class Day13 {
   companion object {
     fun run() {
-      Day13().part1()
-      Day13().part2()
+//      Day13().part1()
+      Day13().part1a()
+//      Day13().part2()
+      Day13().part2a()
     }
 
+//    val off = '.'
+//    val on = '#'
     val off = ' '
-    val on = '#' // '█' is more visible
+    val on = '█' // is more visible
   }
 
   val sample = """
@@ -72,21 +77,92 @@ class Day13 {
     println(grid.grid.count { it == on })
   }
 
+  private fun part1a() {
+    val inputs = getInput(useRealInput = true)
+    val folds = inputs.second
+
+    var grid = createGrid(inputs.first)
+
+    folds.take(1).forEach { fold ->
+      grid = if (fold.first == "y") {
+        foldVerticalByTaking(grid, fold.second)
+      } else {
+        foldHorizontalByTaking(grid, fold.second)
+      }
+    }
+
+    println(grid.grid.count { it == on })
+  }
+
   private fun part2() {
     val inputs = getInput(useRealInput = true)
     val folds = inputs.second
 
     var grid = createGrid(inputs.first)
 
-    folds.forEach { fold ->
-      if (fold.first == "y") {
-        grid = grid.foldY(fold.second)
+    folds.forEachIndexed { index, fold ->
+      grid = if (fold.first == "y") {
+        grid.foldY(fold.second)
       } else {
-        grid = grid.foldX(fold.second)
+        grid.foldX(fold.second)
       }
     }
 
     println(grid)
+  }
+
+  private fun part2a() {
+    val inputs = getInput(useRealInput = true)
+    val folds = inputs.second
+
+    var grid = createGrid(inputs.first)
+
+    folds.forEachIndexed { index, fold ->
+      grid = if (fold.first == "y") {
+        foldVerticalByTaking(grid, fold.second)
+      } else {
+        foldHorizontalByTaking(grid, fold.second)
+      }
+    }
+
+    println(grid)
+  }
+
+  private fun foldHorizontalByTaking(grid: CharGrid, foldLine: Int): CharGrid {
+    return foldVerticalByTaking(grid.rotateClockwise(), foldLine).rotateCounterClockwise()
+  }
+
+  private fun foldVerticalByTaking(
+    grid: CharGrid,
+    foldLine: Int,
+  ): CharGrid {
+    val gridLines = grid.grid.toList().windowed(grid.width, grid.width)
+
+    val list1 = gridLines.take(foldLine).reversed()
+    val list2 = gridLines.drop(foldLine + 1)
+
+    // Deal with a non-centered fold
+    val lines = maxOf(list1.size, list2.size)
+
+    val padLine = off.toString().repeat(grid.width).toList()
+    val thing = (0 until lines).map { index ->
+      val a = list1.getOrNull(index) ?: padLine
+      val b = list2.getOrNull(index) ?: padLine
+      a to b
+    }.map {
+      val first = it.first
+      val second = it.second
+
+      first.toList().zip(second.toList()).map { (a, b) ->
+        if (a == off && b == off) {
+          off
+        } else {
+          on
+        }
+      }.joinToString("")
+    }.reversed()
+
+    return CharGrid(thing)
   }
 
   private fun createGrid(coords: List<List<Int>>): CharGrid {
