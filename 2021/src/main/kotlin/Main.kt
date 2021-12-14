@@ -1,7 +1,7 @@
-import interview.Interview
+import day00.day00
 
 @OptIn(ExperimentalStdlibApi::class)
 fun main(args: Array<String>) {
-  Interview.run()
+  day00.run()
 }
 
