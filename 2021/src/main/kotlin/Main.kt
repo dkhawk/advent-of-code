@@ -1,7 +1,7 @@
-import day00.day00
+import day15.Day15
 
 @OptIn(ExperimentalStdlibApi::class)
 fun main(args: Array<String>) {
-  day00.run()
+  Day15.run()
 }
 

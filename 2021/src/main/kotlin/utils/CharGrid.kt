@@ -2,6 +2,7 @@ package utils
 
 import kotlin.math.abs
 import kotlin.math.sign
+import kotlin.math.sqrt
 
 data class Vector(val x: Int, val y: Int) {
   val sign: Vector
@@ -19,6 +20,12 @@ data class Vector(val x: Int, val y: Int) {
   }
 
   fun directionTo(end: Vector): Vector = (end - this)
+
+  fun distance(goal: Vector): Double {
+    val dx = goal.x - x
+    val dy = goal.y - y
+    return sqrt(((x*x) + (y*y)).toDouble())
+  }
 }
 
 enum class Direction {
@@ -342,7 +349,7 @@ class CharGrid() : Grid<Char> {
     }
   }
 
-  private fun getRow(row: Int): CharArray {
+  fun getRow(row: Int): CharArray {
     val start = row * width
     return grid.sliceArray(start until (start + width))
   }

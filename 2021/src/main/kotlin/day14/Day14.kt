@@ -1,13 +1,22 @@
 package day14
 
+import kotlin.system.measureTimeMillis
 import utils.Input
 
 @OptIn(ExperimentalStdlibApi::class)
 class Day14 {
   companion object {
     fun run() {
-      Day14().part1()
-      Day14().part2()
+      val time1 = measureTimeMillis {
+        Day14().part1()
+      }
+      println("millis: $time1")
+
+      measureTimeMillis {
+        Day14().part2()
+      }.also {
+        println("millis: $it")
+      }
     }
   }
 
