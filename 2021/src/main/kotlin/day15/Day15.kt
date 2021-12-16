@@ -1,6 +1,7 @@
 package day15
 
 import java.util.PriorityQueue
+import kotlin.math.min
 import utils.CharGrid
 import utils.Input
 import utils.Vector
@@ -9,8 +10,8 @@ import utils.Vector
 class Day15 {
   companion object {
     fun run() {
-//      Day15().part1()
-//      Day15().part2()
+      Day15().part1()
+      Day15().part2()
       Day15().part1a()
       Day15().part2a()
     }
@@ -51,24 +52,23 @@ class Day15 {
 
     val finish = Vector(grid.width - 1, grid.height - 1)
 
-    repeat(grid.height) { row ->
-      repeat(grid.width) { col ->
-        costToNode[Vector(col, row)] = Int.MAX_VALUE
-      }
-    }
     costToNode[Vector(0, 0)] = 0
 
     val path = mutableListOf<Vector>()
     path.add(Vector(0, 0))
 
-    while (sptSet.size < (grid.width * grid.height)) {
-      val next = costToNode.keys.toSet()
-        .subtract(sptSet)
-        .minByOrNull { costToNode[it] ?: Int.MAX_VALUE }
-      sptSet.add(next!!)
+    val queue = PriorityQueue<WeightedVector>()
+    queue.add(WeightedVector(0, 0, 0.0))
+
+    while (queue.isNotEmpty()) {
+      val weightedNext = queue.remove()
+      val next = weightedNext.toVector()
+      sptSet.add(next)
 
       if (next == finish) {
-        break
+        println(costToNode.size)
+        println(costToNode[next])
+        return costToNode[next]
       }
 
       val currentCost = costToNode[next]!!
@@ -76,17 +76,15 @@ class Day15 {
       grid.getNeighborsWithLocation(next).forEach { neighbor ->
         val v = neighbor.first
         if (v !in sptSet) {
-          val c = neighbor.second.digitToInt() + currentCost
-          if (costToNode[v]!! > c) {
-            costToNode[v] = c
-          }
+          queue.removeIf { it.x == v.x && it.y == v.y }
+          val c = min(neighbor.second.digitToInt() + currentCost, costToNode.getOrDefault(v, Int.MAX_VALUE))
+          costToNode[v] = c
+          queue.add(WeightedVector(v.x, v.y, c.toDouble()))
         }
       }
     }
 
-    //    println(costToNode)
-    val cost = costToNode[finish]
-    return cost
+    throw Exception("No path found")
   }
 
   private fun part1a() {
@@ -123,6 +121,7 @@ class Day15 {
       val weightedNext = openSet.remove()
       val next = weightedNext.toVector()
       if (next == finish) {
+        println("score sizes ${gscore.size} ${fscore.size}")
         return gscore[weightedNext.toVector()]!!
       }
 
