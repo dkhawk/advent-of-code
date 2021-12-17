@@ -4,7 +4,7 @@ import kotlin.math.abs
 import kotlin.math.sign
 import kotlin.math.sqrt
 
-data class Vector(val x: Int, val y: Int) {
+data class Vector(val x: Int = 0, val y: Int = 0) {
   val sign: Vector
     get() = Vector(x.sign, y.sign)
 
