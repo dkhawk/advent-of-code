@@ -13,15 +13,15 @@ class Input {
     fun readAsLines(day: String, filterBlankLines: Boolean = true): List<String> =
       readFile(inputFileName(day), filterBlankLines)
 
+    fun readAsString(day: String): String {
+      return File(PATH + inputFileName(day)).readText()
+    }
+
     private fun readFile(baseFilename: String, filterBlankLines: Boolean = true): List<String> =
       File(PATH + baseFilename).readLines().filter { if (filterBlankLines) it.isNotBlank() else true }
 
     private fun dayIntToString(day: Int) = day.toString().padStart(2, '0')
 
     private fun inputFileName(day: String): String = "input-$day.txt"
-
-    fun readAsString(day: String): String {
-      return File(PATH + inputFileName(day)).readText()
-    }
   }
 }

@@ -4,7 +4,7 @@ import kotlin.math.abs
 import kotlin.math.sign
 import kotlin.math.sqrt
 
-data class Vector(val x: Int = 0, val y: Int = 0) {
+data class Vector(val x: Int = 0, val y: Int = 0) : Comparable<Vector> {
   val sign: Vector
     get() = Vector(x.sign, y.sign)
 
@@ -26,6 +26,12 @@ data class Vector(val x: Int = 0, val y: Int = 0) {
     val dy = goal.y - y
     return sqrt(((x*x) + (y*y)).toDouble())
   }
+
+  fun abs(): Vector {
+   return Vector(abs(x), abs(y))
+  }
+
+  override fun compareTo(other: Vector): Int = compareValuesBy(this, other, { it.x }, { it.y })
 }
 
 enum class Direction {
@@ -55,10 +61,23 @@ enum class Heading(val vector: Vector) {
   }
 }
 
-data class Vector3d(val x: Long, val y: Long, val z: Long) {
-  operator fun plus(other: Vector3d): Vector3d = Vector3d(x + other.x, y + other.y, z + other.z)
+data class Vector3dLong(val x: Long, val y: Long, val z: Long) {
+  operator fun plus(other: Vector3dLong): Vector3dLong = Vector3dLong(x + other.x, y + other.y, z + other.z)
 
-  fun distanceTo(other: Vector3d): Long = abs(x - other.x) + abs(y - other.y) + abs(z - other.z)
+  fun distanceTo(other: Vector3dLong): Long = abs(x - other.x) + abs(y - other.y) + abs(z - other.z)
+
+  override fun toString(): String = "<$x,$y,$z>"
+}
+
+data class Vector3d(val x: Int, val y: Int, val z: Int) {
+  operator fun plus(other: Vector3d): Vector3d = Vector3d(x + other.x, y + other.y, z + other.z)
+  operator fun minus(other: Vector3d): Vector3d = Vector3d(x - other.x, y - other.y, z - other.z)
+
+  fun distanceTo(other: Vector3d): Int = abs(x - other.x) + abs(y - other.y) + abs(z - other.z)
+
+  fun abs(): Vector3d {
+    return Vector3d(abs(x), abs(y), abs(z))
+  }
 
   override fun toString(): String = "<$x,$y,$z>"
 }

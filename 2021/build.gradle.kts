@@ -23,6 +23,7 @@ object Versions {
 
 dependencies {
     testImplementation(kotlin("test"))
+    implementation("com.google.truth:truth:1.1.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
     implementation("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}")
     implementation("org.jetbrains.kotlin:kotlin-test:${Versions.kotlin}")
