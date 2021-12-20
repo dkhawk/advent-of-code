@@ -12,8 +12,8 @@ import utils.NO_COLOR
 class Day18 {
   companion object {
     fun run() {
-      Day18().part1()
-      //  Day18().part2()
+      // Day18().part1()
+      Day18().part2()
     }
   }
 
@@ -35,6 +35,29 @@ class Day18 {
 //    val input = sample
     val sum = sumAndReduce(input)
     println(magnitude(sum))
+  }
+
+  private fun part2() {
+    val input = Input.readAsLines("18")
+//    val input = sample
+
+    val permutations = permutations(input)
+    val max = permutations.maxOf {
+      magnitude(sumAndReduce(it.toList()))
+    }
+    println(max)
+  }
+
+  private fun permutations(strings: List<String>): List<Pair<String, String>> {
+    return strings.mapIndexed { outerIndex, oString ->
+      strings.mapIndexedNotNull { index, string ->
+        if (outerIndex == index) {
+          null
+        } else {
+          oString to string
+        }
+      }
+    }.flatten()
   }
 
   fun sumAndReduce(input: List<String>): String {
@@ -151,12 +174,6 @@ class Day18 {
       iterator.putBack(next)
     }
     return answer
-  }
-
-  private fun part2() {
-//    val inputs = getInput(useRealInput = false)
-//    println(inputs.joinToString("\n"))
-    TODO("Not yet implemented")
   }
 
   private val pairRegex = Regex("""\[\d+,\d+\]""")
