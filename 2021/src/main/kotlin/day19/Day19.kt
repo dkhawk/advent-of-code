@@ -1,9 +1,7 @@
 package day19
 
-import java.io.File
-import utils.CharGrid
+import kotlin.math.sign
 import utils.Input
-import utils.Vector
 import utils.Vector3d
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -26,6 +24,24 @@ class Day19 {
       -5,0
       -2,1""".trimIndent().split("\n").filter { it.isNotBlank() }
 
+  val sample2 = """
+    --- scanner 0 ---
+    -1,-1,1
+    -2,-2,2
+    -3,-3,3
+    -2,-3,1
+    5,6,-4
+    8,0,7
+
+    --- scanner 0 ---
+    1,-1,1
+    2,-2,2
+    3,-3,3
+    2,-1,3
+    -5,4,-6
+    -8,-7,0
+  """.trimIndent().split("\n").filter { it.isNotBlank() }
+
   private fun getInput(useRealInput: Boolean): List<String> {
     val input = if (useRealInput) {
       Input.readAsLines("19")
@@ -38,7 +54,14 @@ class Day19 {
 
   val numberRegex = Regex("\\d+")
 
-  data class Scanner(val id: Int, val scans: List<Vector3d>)
+  data class VectorN(val coords: List<Int>) {
+    val size: Int
+      get() = coords.size
+
+    operator fun get(index: Int): Int = coords[index]
+  }
+
+  data class Scanner(val id: Int, val scans: List<VectorN>)
   data class BeaconDelta(val beaconId1: Int, val beaconId2: Int, val delta: Vector3d)
 
   private fun part1() {
@@ -55,123 +78,39 @@ class Day19 {
     // i.e., the combination
 
 
-    val inputs = File("/Users/dkhawk/Downloads/2021/input-19-sample.txt").readLines().filter(String::isNotBlank)
+//    val inputs = File("/Users/dkhawk/Downloads/2021/input-19-sample.txt").readLines().filter(String::isNotBlank)
+    val inputs = sample2
 
 //    val inputs = getInput(useRealInput = false)
 //    println(inputs.joinToString("\n"))
 
     val scanners = createScannerMap(inputs)
 
-    val scannerDeltas = scanners.map { scanner ->
-      computeDeltas(scanner.scans)
+    val axes0 = (0 until scanners[0].scans.first().size).map {
+      plotAxis(scanners[0], it).sorted()
     }
 
-
-    val sdms = scannerDeltas.map { scannerDeltaMap(it) }
-    val beaconSortedDeltaMaps = sdms.take(2).map { sdm ->
-      sdm.map { (bid, bds) ->
-        bid to bds.map { it.delta }
-      }.toMap()
-        .map { (bid, bdm) ->
-        bid to bdm.map {
-          listOf(it.x, it.y, it.z).sorted()
-        }.sortedBy { it.sum() }
-          .map { it.toString() }
-      }
+    val axes1 = (0 until scanners[1].scans.first().size).flatMap {
+      val list = plotAxis(scanners[1], it).sorted()
+      val list2 = list.map { it * it.sign }.sorted()
+      listOf(list, list2)
     }
 
-    val s = beaconSortedDeltaMaps.joinToString("\n\n") {
-      it.joinToString("\n") { "${it.second.toString()} ${it.first}" }
+    correlate(axes0, axes1)
+  }
+
+  private fun correlate(axes0: List<List<Int>>, axes1: List<List<Int>>) {
+    val target = axes0.first()
+    axes1.forEach { axis ->
+      // can this be shifted to match?
+      val delta = target[0] - axis[0]
+      val errors = target.zip(axis).map { (a, b) -> a - (b + delta) }
+      println(errors)
     }
+  }
 
-    val deltas = beaconSortedDeltaMaps[0][9]
-    val d1 = deltas.second.first()
-    println(d1)
-
-    beaconSortedDeltaMaps[1].forEach { (a, b) ->
-      if (b.contains(d1)) {
-        println("$a  =>  $b")
-      }
-    }
-
-//    beaconSortedDeltaMaps[1].filter {
-//      val second = it.second
-//      second.contains(beaconSortedDeltaMaps[0][9].second)
-//    }
-
-//    println(s)
-
-    // [[8, 43, 46], [1, 81, 163], [149, 172, 1008], [236, 280, 1022], [133, 467, 968],
-    // [171, 495, 939], [197, 269, 1162], [273, 513, 1002], [34, 64, 1692], [71, 91, 1669],
-    // [70, 171, 1724], [550, 625, 791], [117, 1022, 1077], [123, 1041, 1055], [181, 1030, 1146],
-    // [54, 1169, 1171], [144, 1182, 1216], [242, 1143, 1248], [274, 1305, 1348], [220, 1355, 1415],
-    // [258, 1384, 1473], [1061, 1283, 1404], [1092, 1288, 1404], [1073, 1349, 1553]] 9
-
-
-    // [[8, 43, 46], [1, 81, 163], [17, 22, 824], [21, 100, 857], [119, 149, 783], [149, 172, 1008],
-    // [284, 556, 591], [236, 280, 1022], [133, 467, 968], [171, 495, 939], [197, 269, 1162],
-    // [273, 513, 1002], [17, 913, 1107], [69, 776, 1197], [4, 1014, 1115], [58, 1014, 1107],
-    // [117, 1022, 1077], [123, 1041, 1055], [121, 921, 1289], [181, 1030, 1146], [44, 1183, 1186],
-    // [991, 1026, 1424], [1088, 1152, 1389], [1050, 1185, 1471]] 0
-
-
-//    val t = s.split("\n").filter(String::isNotBlank).sorted()
-//
-//    println(t.joinToString("\n"))
-
-    return
-
-    val sdm1 = scannerDeltaMap(scannerDeltas.first())
-    val beaconDeltaMap = sdm1.map { (bid, bds) ->
-      bid to bds.map { it.delta }
-    }.toMap()
-
-
-    val beaconSortedDeltaMap = beaconDeltaMap.map { (bid, bdm) ->
-      bid to bdm.map {
-        listOf(it.x, it.y, it.z).sorted()
-      }.sortedBy { it.sum() }
-    }
-
-    println(beaconSortedDeltaMap.joinToString("\n"))
-
-    return
-
-
-
-
-
-
-
-    val sdm2 = scannerDeltaMap(scannerDeltas[1])
-
-
-    val beaconDeltas = sdm2.map { (k, v) -> k to v.map { it.delta } }.toMap()
-
-    val resolved = beaconDeltas.map { (bid, deltas) ->
-      bid to findBeacon(beaconDeltaMap, deltas)
-    }
-
-    val (beaconInScanner1, possibilities) = resolved[0]
-    val beaconInScanner2 = possibilities.first()
-
-    println("++++++++++++++")
-    println(scanners[0].scans[beaconInScanner1])
-    println(scanners[1].scans[beaconInScanner2])
-
-    val scanner1 = scanners[0].scans[beaconInScanner1] - scanners[1].scans[beaconInScanner2]
-
-//    val grid = CharGrid(20, 20)
-//    val offset = Vector3d(10, 10, 10)
-//    scanners[0].scans.forEach { scan ->
-//      val loc = scan + offset
-//      grid.setCell(loc, '*')
-//    }
-//
-//    grid.setCell(offset, '0')
-//    grid.setCell(offset + scanner1, '1')
-//
-//    println(grid.flipAlongHorizontalAxis())
+  private fun plotAxis(scanner: Scanner, axisNumber: Int): List<Int> {
+    return scanner.scans.map { it[axisNumber] }
   }
 
   private fun findBeacon(
@@ -220,7 +159,7 @@ class Day19 {
   private fun createScannerMap(inputs: List<String>): List<Scanner> {
     val scanners = mutableListOf<Scanner>()
     var scannerId = -1
-    var scans = mutableListOf<Vector3d>()
+    var scans = mutableListOf<VectorN>()
 
     inputs.forEach { line ->
       if (line.contains("scanner")) {
@@ -230,11 +169,7 @@ class Day19 {
         scannerId = numberRegex.find(line)?.groups?.get(0)?.value?.toInt() ?: -1
         scans = mutableListOf()
       } else {
-        line.split(',')
-          .map(String::toInt)
-          .also {
-            scans.add(Vector3d(it[0], it[1], it[2]))
-          }
+        scans.add(VectorN(line.split(',').map(String::toInt)))
       }
     }
 

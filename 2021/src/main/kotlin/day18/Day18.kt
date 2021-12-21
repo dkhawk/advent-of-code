@@ -4,6 +4,7 @@ import java.util.LinkedList
 import java.util.Queue
 import kotlin.math.ceil
 import kotlin.math.floor
+import kotlin.system.measureTimeMillis
 import utils.COLORS
 import utils.Input
 import utils.NO_COLOR
@@ -12,8 +13,13 @@ import utils.NO_COLOR
 class Day18 {
   companion object {
     fun run() {
-      // Day18().part1()
-      Day18().part2()
+      val time = measureTimeMillis {
+//        Day01().part1()
+        Day18().part1()
+      }
+      println("millis: $time")
+
+//      Day18().part2()
     }
   }
 
