@@ -1,6 +1,6 @@
 package day19
 
-import kotlin.math.sign
+import kotlin.system.measureTimeMillis
 import utils.Input
 import utils.Vector3d
 
@@ -8,8 +8,17 @@ import utils.Vector3d
 class Day19 {
   companion object {
     fun run() {
-      Day19().part1()
-      //  Day19().part2()
+      measureTimeMillis {
+        Day19().part1()
+      }.also {
+        println("millis: $it")
+      }
+      measureTimeMillis {
+        //  Day19().part2()
+      }.also {
+        println("millis: $it")
+      }
+
     }
   }
 
@@ -33,13 +42,37 @@ class Day19 {
     5,6,-4
     8,0,7
 
-    --- scanner 0 ---
+    --- scanner 1 ---
     1,-1,1
     2,-2,2
     3,-3,3
     2,-1,3
     -5,4,-6
     -8,-7,0
+    
+    --- scanner 2 ---
+    -1,-1,-1
+    -2,-2,-2
+    -3,-3,-3
+    -1,-3,-2
+    4,6,5
+    -7,0,8
+
+    --- scanner 3 ---
+    1,1,-1
+    2,2,-2
+    3,3,-3
+    1,3,-2
+    -4,-6,5
+    7,0,8
+
+    --- scanner 4 ---
+    1,1,1
+    2,2,2
+    3,3,3
+    3,1,2
+    -6,-4,-5
+    0,7,-8
   """.trimIndent().split("\n").filter { it.isNotBlank() }
 
   private fun getInput(useRealInput: Boolean): List<String> {
@@ -65,48 +98,69 @@ class Day19 {
   data class BeaconDelta(val beaconId1: Int, val beaconId2: Int, val delta: Vector3d)
 
   private fun part1() {
-    // TODO(dkhawk): Plot each axis of scan set zero
-    // Then check against plots of each axis in both directions finding the highest correlation
-    // so for the second scanner (scanner 1), plot x in both the position and reverse direction
-    // the slide the plot to find the highest number of matching pixels
-    // then repeat for the y and z axis.  Then try the different axis against each other
-    // x vs x, x vs -x
-    // x vs y, x vs -y
-    // x vs z, x vs -z
-    //
-    // Naturally, the remaining two axis should be compared to the other remaining two axis
-    // i.e., the combination
-
-
 //    val inputs = File("/Users/dkhawk/Downloads/2021/input-19-sample.txt").readLines().filter(String::isNotBlank)
     val inputs = sample2
 
 //    val inputs = getInput(useRealInput = false)
-//    println(inputs.joinToString("\n"))
 
     val scanners = createScannerMap(inputs)
 
-    val axes0 = (0 until scanners[0].scans.first().size).map {
-      plotAxis(scanners[0], it).sorted()
+    val axes = scanners.map { scanner ->
+      scanner.scans.unzip() // .also { println(it) }
     }
 
-    val axes1 = (0 until scanners[1].scans.first().size).flatMap {
-      val list = plotAxis(scanners[1], it).sorted()
-      val list2 = list.map { it * it.sign }.sorted()
-      listOf(list, list2)
-    }
+    val first = axes.first()
 
-    correlate(axes0, axes1)
+    axes.drop(1).forEach { axis ->
+      val corrections = correlate(first, axis)
+      val scans = applyCorrections(corrections, axis)
+      println(scans)
+    }
   }
 
-  private fun correlate(axes0: List<List<Int>>, axes1: List<List<Int>>) {
-    val target = axes0.first()
-    axes1.forEach { axis ->
-      // can this be shifted to match?
-      val delta = target[0] - axis[0]
-      val errors = target.zip(axis).map { (a, b) -> a - (b + delta) }
-      println(errors)
+  private fun applyCorrections(
+    corrections: List<Correction>,
+    originalScans: List<List<Int>>,
+  ): List<List<Int>> {
+    return corrections.map { correction ->
+      val scans = originalScans[correction.axis]
+      scans.map { (it * correction.sign) + correction.delta }
     }
+  }
+
+  data class Correction(val axis: Int, val error: Int, val delta: Int, val sign: Int = 1)
+
+  private fun correlate(axes0: List<List<Int>>, axes1: List<List<Int>>): List<Correction> {
+    return axes0.map { target ->
+      val sortedTarget = target.sorted()
+      val errors = axes1.mapIndexed { index, axis ->
+        val axisSorted = axis.sorted()
+        var result = correlationHelper(sortedTarget, axisSorted, index)
+
+        if (result.error > 0) {
+          val reversed = correlationHelper(sortedTarget,
+                                           axisSorted.reversed().map { -it },
+                                           index).copy(sign = -1)
+          if (reversed.error < result.error) {
+            result = reversed
+          }
+        }
+        result
+      }
+      errors.minByOrNull { it.error }!!
+    }
+  }
+
+  private fun correlationHelper(
+    sortedTarget: List<Int>,
+    axisSorted: List<Int>,
+    index: Int,
+  ): Correction {
+    // can this be shifted to match?
+    val delta = sortedTarget[0] - axisSorted[0]
+    val errors = sortedTarget.zip(axisSorted).map { (a, b) -> a - (b + delta) }
+    val error = errors.map { it * it }.sum()
+    return Correction(index, error, delta)
   }
 
   private fun plotAxis(scanner: Scanner, axisNumber: Int): List<Int> {
@@ -183,6 +237,23 @@ class Day19 {
     println(inputs.joinToString("\n"))
     TODO("Not yet implemented")
   }
+}
+
+private fun List<Day19.VectorN>.unzip(): ArrayList<MutableList<Int>> {
+  val dimensions = first().size
+
+  val result = ArrayList<MutableList<Int>>(dimensions)
+  repeat(dimensions) {
+    result.add(mutableListOf())
+  }
+
+  forEach{ vectorN ->
+    vectorN.coords.forEachIndexed { dimension, value ->
+      result[dimension].add(value)
+    }
+  }
+
+  return result
 }
 
 private fun IntRange.range(): Int {
