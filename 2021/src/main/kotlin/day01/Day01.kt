@@ -1,9 +1,5 @@
 import java.io.File
 import kotlin.system.measureTimeMillis
-import utils.AlphaOnly
-import utils.CharGrid
-import utils.InputFactory
-import utils.Template
 
 @kotlin.ExperimentalStdlibApi
 class Day01 {

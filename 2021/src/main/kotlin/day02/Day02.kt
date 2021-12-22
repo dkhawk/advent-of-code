@@ -3,8 +3,6 @@ package day02
 import java.io.File
 import kotlin.math.max
 import kotlin.system.measureTimeMillis
-import utils.AlphaOnly
-import utils.CharGrid
 import utils.InputFactory
 import utils.Template
 import utils.Vector
