@@ -149,7 +149,10 @@ class CharGrid() : Grid<Char> {
     return output.toString()
   }
 
-  fun toStringWithHighlights(highlight: String = COLORS.LT_RED.toString(), predicate: (Char, Vector) -> Boolean): String {
+  fun toStringWithHighlights(
+    highlight: String = COLORS.LT_RED.toString(),
+    predicate: (Char, Vector) -> Boolean,
+  ): String {
     val output = StringBuilder()
     output.append("$width, $height\n")
     var row = 0
@@ -159,6 +162,29 @@ class CharGrid() : Grid<Char> {
           val shouldHighlight = predicate(c, Vector(index, row))
           if (shouldHighlight) {
             highlight + c.toString() + NO_COLOR
+          } else {
+            c.toString()
+          }
+        }
+      ).append('\n')
+      row += 1
+    }
+
+    return output.toString()
+  }
+
+  fun toStringWithMultipleHighlights(
+    vararg highlight: Pair<String, (Char, Vector) -> Boolean>
+  ): String {
+    val output = StringBuilder()
+    output.append("$width, $height\n")
+    var row = 0
+    grid.toList().windowed(width, width) {
+      output.append(
+        it.withIndex().joinToString("") { (index, c) ->
+          val hl = highlight.firstOrNull { it.second(c, Vector(index, row)) }
+          if (hl != null) {
+            hl.first + c.toString() + NO_COLOR
           } else {
             c.toString()
           }
@@ -528,5 +554,9 @@ class CharGrid() : Grid<Char> {
     }
 
     return outGrid
+  }
+
+  operator fun set(it: Vector, value: Char) {
+    this.setCell(it, value)
   }
 }

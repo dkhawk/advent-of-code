@@ -20,6 +20,7 @@ enum class COLORS(bright: Int, color: Int) {
   LT_MAGENTA(1, 35),
   LT_CYAN(1, 36),
   INVERTED_GREEN(7, 32),
+  INVERTED_RED(7, 31),
   WHITE(1, 37),
   NONE(-1, -1);
 

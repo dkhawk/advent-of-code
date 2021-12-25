@@ -1,7 +1,7 @@
 package day19
 
+import java.io.File
 import kotlin.system.measureTimeMillis
-import utils.Input
 import utils.Vector3d
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -143,67 +143,41 @@ class Day19 {
   }
 
   data class Scanner(val id: Int, val scans: List<List<Int>>)
-  data class BeaconDelta(val beaconId1: Int, val beaconId2: Int, val delta: Vector3d)
 
   private fun part1() {
-//    val inputs = File("/Users/dkhawk/Downloads/2021/input-19-sample.txt").readLines().filter(String::isNotBlank)
-    val inputs = sample3
-
-//    val inputs = getInput(useRealInput = false)
+    val inputs = File("/Users/dkhawk/Downloads/2021/input-19-sample.txt").readLines().filter(String::isNotBlank)
 
     val scanners = createScannerMap(inputs)
 
     val axes = scanners.map { scanner ->
-      scanner.scans.pivot() // .also { println(it) }
+      scanner.scans.pivot()
     }
 
-    val first = axes.first()
+    val firstScanner = axes.first()
 
-    axes.drop(1).forEach { axis ->
-      val corrections = correlate(first, axis)
-      val correctedAxes = applyCorrections(corrections, axis)
-      // println(correctedAxes)
-      val scans = correctedAxes.pivot()
-      println(scans.joinToString("\n"))
-      println("--")
+    val corrections = firstScanner.mapNotNull { target ->
+      bestAxis(target, axes[1])
+    }
 
+    if (corrections.size == 3) {
+      val corrected = applyAxisCorrections(corrections, axes[1])
+      val correctedScans = corrected.pivot()
+      val commonBeacons = scanners.first().scans.toSet().intersect(correctedScans.toSet())
+      println(commonBeacons)
     }
   }
 
-  private fun applyCorrections(
+  fun applyAxisCorrections(
     corrections: List<Correction>,
     originalScans: List<List<Int>>,
   ): List<List<Int>> {
     return corrections.map { correction ->
-      val scans = originalScans[correction.axis]
-      scans.map { (it * correction.sign) + correction.delta }
+      val scans = originalScans[correction.axisNumber]
+      scans.map { (it * correction.axisSign) + correction.correctionFactor }
     }
   }
 
-  data class Correction(val axis: Int, val error: Int, val delta: Int, val sign: Int = 1)
-
-  private fun correlate(axes0: List<List<Int>>, axes1: List<List<Int>>): List<Correction> {
-    return axes0.map { target ->
-      val sortedTarget = target.sorted()
-      val errors = axes1.mapIndexed { index, axis ->
-        val axisSorted = axis.sorted()
-        var result = correlationHelper(sortedTarget, axisSorted, index)
-
-        if (result.error > 0) {
-          val reversed = correlationHelper(sortedTarget,
-                                           axisSorted.reversed().map { -it },
-                                           index).copy(sign = -1)
-          if (reversed.error < result.error) {
-            result = reversed
-          }
-        }
-        result
-      }
-      errors.minByOrNull { it.error }!!
-    }
-  }
-
-  fun checkAxis(target: List<Int>, points: List<Int>) {
+  fun checkAxis(target: List<Int>, points: List<Int>): Pair<Int, Int> {
     val sortedTarget = target.sorted()
     val sortedPoints = points.sorted()
 
@@ -214,72 +188,12 @@ class Day19 {
       val shifted = sortedPoints.map { it + offset }
       offset to sortedTarget.intersect(shifted.toSet())
     }.filter { it.second.isNotEmpty() }
-//    println(intersections)
-    println(intersections.maxByOrNull { it.second.size })
+    val bestFit = intersections.maxByOrNull { it.second.size }
 
-
+    return bestFit!!.first to bestFit.second.size
   }
 
-  private fun correlationHelper(
-    sortedTarget: List<Int>,
-    axisSorted: List<Int>,
-    index: Int,
-  ): Correction {
-    // can this be shifted to match?
-    val delta = sortedTarget[0] - axisSorted[0]
-    val errors = sortedTarget.zip(axisSorted).map { (a, b) -> a - (b + delta) }
-    val error = errors.map { it * it }.sum()
-    return Correction(index, error, delta)
-  }
-
-  private fun plotAxis(scanner: Scanner, axisNumber: Int): List<Int> {
-    return scanner.scans.map { it[axisNumber] }
-  }
-
-  private fun findBeacon(
-    beaconDeltaMap: Map<Int, List<Vector3d>>,
-    deltas: List<Vector3d>,
-  ): Set<Int> {
-    val answer = deltas.map { delta ->
-      beaconDeltaMap.filterValues { listOfDeltas ->
-        listOfDeltas.any {
-          it == delta
-        }
-      }.keys.toSet()
-    }.reduce { acc, it ->
-      acc.intersect(it)
-    }
-
-    return answer
-  }
-
-  private fun scannerDeltaMap(scanner: List<BeaconDelta>): MutableMap<Int, List<BeaconDelta>> {
-    val m1 = scanner.groupBy { it.beaconId1 }.toMutableMap()
-    val m2 = scanner.groupBy { it.beaconId2 }.toMutableMap()
-
-    m2.forEach { (id, deltas) ->
-      if (!m1.contains(id)) {
-        m1[id] = deltas
-      } else {
-        m1[id] = m1[id]!! + deltas
-      }
-    }
-
-    return m1
-  }
-
-  private fun computeDeltas(scans: List<Vector3d>, offset: Int = 0): List<BeaconDelta> {
-    if (scans.size <= 1) {
-      return listOf()
-    }
-
-    val s0 = scans.first()
-    return scans.drop(1).mapIndexed { index, s1 ->
-      BeaconDelta(offset, offset + index + 1, (s0 - s1).abs())
-    } + computeDeltas(scans.drop(1), offset + 1)
-  }
-
-  private fun createScannerMap(inputs: List<String>): List<Scanner> {
+  fun createScannerMap(inputs: List<String>): List<Scanner> {
     val scanners = mutableListOf<Scanner>()
     var scannerId = -1
     var scans = mutableListOf<List<Int>>()
@@ -301,12 +215,28 @@ class Day19 {
     return scanners
   }
 
-  private fun part2() {
-    TODO("Not yet implemented")
+  data class Correction(val axisNumber: Int, val correctionFactor: Int, val axisSign: Int)
+
+  fun bestAxis(target: List<Int>, axes: List<List<Int>>): Correction? {
+    val fits = axes.flatMapIndexed { index, axis ->
+      listOf(
+        (index to 1) to checkAxis(target, axis),
+        (index to -1) to checkAxis(target, axis.map { -it }),
+      )
+    }
+    return fits.maxByOrNull { it.second.second }?.let { best ->
+      if (best.second.second >= 12) {
+        Correction(axisNumber = best.first.first,
+                   correctionFactor = best.second.first,
+                   axisSign = best.first.second)
+      } else {
+        null
+      }
+    }
   }
 }
 
-private fun <E> List<List<E>>.pivot(): List<List<E>> {
+fun <E> List<List<E>>.pivot(): List<List<E>> {
   val dimensions = first().size
 
   val result = ArrayList<MutableList<E>>(dimensions)
