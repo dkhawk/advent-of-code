@@ -1,3 +1,5 @@
+package aoc2016
+
 import kotlin.system.measureTimeMillis
 
 @kotlin.ExperimentalStdlibApi

@@ -32,6 +32,17 @@ data class Vector(val x: Int = 0, val y: Int = 0) : Comparable<Vector> {
   }
 
   override fun compareTo(other: Vector): Int = compareValuesBy(this, other, { it.x }, { it.y })
+
+  fun neighborsConstrained(top: Int = 0, bottom: Int, left: Int = 0, right: Int): List<Vector> {
+    return Heading.values().mapNotNull { heading ->
+      val candidate = this.advance(heading)
+      if (candidate.y in top..bottom && candidate.x in left..right) {
+        candidate
+      } else {
+        null
+      }
+    }
+  }
 }
 
 enum class Direction {
