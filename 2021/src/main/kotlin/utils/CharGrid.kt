@@ -451,7 +451,7 @@ class CharGrid() : Grid<Char> {
   }
 
 
-  private fun getColumn(col: Int): CharArray {
+  fun getColumn(col: Int): CharArray {
     val result = CharArray(height)
     var index = col
     repeat(height) {

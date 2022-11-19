@@ -2,7 +2,6 @@ package day23
 
 import kotlin.test.assertEquals
 import org.junit.Test
-import utils.COLORS
 import utils.Vector
 
 class Day23Test {
@@ -10,7 +9,7 @@ class Day23Test {
 
   @Test
   fun `can get path`() {
-    val path = day.getPath(Vector(5, 3), day.goalLocations['D']!!.first())
+    val path = day.getPath(Vector(5, 3), Day23.goalLocations['D']!!.first())
     println(path)
 
     val expected = listOf(Vector(x=5, y=3), Vector(x=5, y=2), Vector(x=5, y=1), Vector(x=6, y=1),
@@ -25,72 +24,35 @@ class Day23Test {
   }
 
   @Test
-  fun `can find obstacles`() {
-    val grid = day.getInput(useRealInput = false)
+  fun `can detect loops`() {
+    val grid = day.sample
     println(grid)
 
-    val path = day.getPath(Vector(5, 3), day.goalLocations['D']!!.last())
+    'B' to Day23.goalLocations['B']!![0]
 
-    val obstacles = day.getObstacles(path.drop(1), grid)
-    println(obstacles)
+    return
 
-    val expected = listOf(
-      (Vector(x=5, y=2) to 'C'), (Vector(x=9, y=2) to 'D'), (Vector(x=9, y=3) to 'A')
-    )
-    assertEquals(expected, obstacles)
-
-//    val pathGrid = day.emptyGrid.copy()
-//    path.forEach {
-//      pathGrid[it] = '*'
-//    }
-//
-//    obstacles.forEach {
-//      pathGrid[it.first] = it.second
-//    }
-//
-//    println(
-//      pathGrid.toStringWithMultipleHighlights(
-//        COLORS.LT_GREEN.toString() to { c, v -> c == '*' },
-//        COLORS.LT_RED.toString() to { c, v -> c in day.amphipods },
-//      )
-//    )
+    val orderToSolve = listOf(
+      'B' to 0, 'b' to 1, 'A' to 0, 'a' to 1, 'C' to 0, 'c' to 1, 'D' to 0, 'd' to 1,
+//      'D' to 1, 'd' to 0, 'C' to 0, 'c' to 1, 'B' to 0, 'b' to 1, 'A' to 0, 'a' to 1,
+    ).map { (amphipod, goalIndex) ->
+      print("'$amphipod' to $goalIndex, ")
+      amphipod to Day23.goalLocations[amphipod.uppercaseChar()]!![goalIndex]
+    }
+    val (solvedGrid, paths) = day.solve(orderToSolve, grid)
+    day.replayPaths(paths, grid, showEachMove = false)
+    day.calculateCost(paths, grid)
   }
 
-   @Test
-   fun `move to closest open safe cell`() {
-     val grid = day.getInput(useRealInput = false)
-     println(grid)
-
-     val path = day.getPath(Vector(5, 3), day.goalLocations['D']!!.last())
-
-     val obstacles = day.getObstacles(path.drop(1), grid)
-     println(obstacles)
-
-     val expected = listOf(
-       (Vector(x=5, y=2) to 'C'), (Vector(x=9, y=2) to 'D'), (Vector(x=9, y=3) to 'A')
-     )
-     assertEquals(expected, obstacles)
-
-     day.clearPath(path, obstacles, grid)
-   }
-
   @Test
-  fun `move off path`() {
-    val grid = day.getInput(useRealInput = false)
-    println(grid)
+  fun `can solved a goal`() {
+    val goals = listOf(
+      'D' to 1, 'd' to 0, 'C' to 0, 'c' to 1, 'B' to 0, 'b' to 1,
+      'A' to 0, 'a' to 1,
+    ).map { Day23.Goal(it) }
 
-    val obstacles = listOf(
-      (Vector(x=5, y=2) to 'C'), (Vector(x=9, y=2) to 'D'), (Vector(x=9, y=3) to 'A')
-    ).sortedByDescending { it.second }
+    val world = Day23.WorldState(day.sample, goals.drop(1).take(1))
 
-    obstacles.forEach { obstacle ->
-      val path = day.getPath(Vector(5, 3), day.goalLocations['D']!!.last())
-
-      val movePath = day.moveOffPath(obstacle, path, grid)
-      grid[obstacle.first] = '.'
-      grid[movePath.first.last()] = obstacle.second
-
-      println(grid)
-    }
+    day.solve(world)
   }
 }
